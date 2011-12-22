@@ -24,6 +24,18 @@ class Cassandra
       )
     end
 
+    def _multi_count_columns(column_family, keys, super_column, start, stop, count, consistency)
+      client.multiget_count(keys,
+        CassandraThrift::ColumnParent.new(:column_family => column_family, :super_column => super_column),
+        CassandraThrift::SlicePredicate.new(:slice_range =>
+                                            CassandraThrift::SliceRange.new(
+                                              :start  => start  || '',
+                                              :finish => stop   || '',
+                                              :count  => count  || 100
+                                            )),
+        consistency)
+    end
+
     # FIXME: Add support for start, stop, count
     def _get_columns(column_family, key, columns, sub_columns, consistency)
       result = if is_super(column_family)

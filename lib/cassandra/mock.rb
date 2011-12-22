@@ -188,9 +188,9 @@ class Cassandra
       end
     end
 
-    def multi_count_columns(column_family, keys)
+    def multi_count_columns(column_family, keys, *columns_and_options)
       keys.inject(OrderedHash.new) do |hash, key|
-        hash[key] = count_columns(column_family, key)
+        hash[key] = count_columns(column_family, key, *columns_and_options)
         hash
       end
     end

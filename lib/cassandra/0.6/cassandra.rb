@@ -51,6 +51,22 @@ class Cassandra
     schema.keys.each { |column_family| clear_column_family!(column_family, options) }
   end
 
+  ##
+  # Multi-key version of Cassandra#count_columns. Please note that this
+  # queries the server for each key passed in.
+  #
+  # Supports same parameters as Cassandra#count_columns.
+  #
+  # * column_family - The column_family that you are inserting into.
+  # * key - The row key to insert.
+  # * columns - Either a single super_column or a list of columns.
+  # * sub_columns - The list of sub_columns to select.
+  # * options - Valid options are:
+  #   * :consistency - Uses the default read consistency if none specified.
+  def multi_count_columns(column_family, keys, *options)
+    OrderedHash[*keys.map { |key| [key, count_columns(column_family, key, *options)] }._flatten_once]
+  end
+
   # Open a batch operation and yield self. Inserts and deletes will be queued
   # until the block closes, and then sent atomically to the server.  Supports
   # the <tt>:consistency</tt> option, which overrides the consistency set in

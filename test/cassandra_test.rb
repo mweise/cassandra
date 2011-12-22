@@ -532,6 +532,34 @@ class CassandraTest < Test::Unit::TestCase
       @twitter.multi_count_columns(:Users, [key + '2', 'bogus', key + '1']))
   end
 
+  def test_multi_count_columns_with_count
+    @twitter.insert(:Users, key + '1', (1..200).inject({}) {|hash, i| hash['column' + "%03d" % i] = i.to_s; hash})
+    @twitter.insert(:Users, key + '2', (1..200).inject({}) {|hash, i| hash['column' + "%03d" % i] = i.to_s; hash})
+    assert_equal(
+      OrderedHash[key + '1', 200, key + '2', 200],
+      @twitter.multi_count_columns(:Users, [key + '1', key + '2'], :count => 200))
+    assert_equal(
+      OrderedHash[key + '1', 100, key + '2', 100],
+      @twitter.multi_count_columns(:Users, [key + '1', key + '2']))
+    assert_equal(
+      OrderedHash[key + '1', 55, key + '2', 55],
+      @twitter.multi_count_columns(:Users, [key + '1', key + '2'], :count => 55))
+  end
+
+  def test_multi_count_columns_with_start_and_finish
+    @twitter.insert(:Users, key + '1', (1..100).inject({}) {|hash, i| hash['column' + "%03d" % i] = i.to_s; hash})
+    @twitter.insert(:Users, key + '2', (51..150).inject({}) {|hash, i| hash['column' + "%03d" % i] = i.to_s; hash})
+    assert_equal(
+      OrderedHash[key + '1', 10, key + '2', 10],
+      @twitter.multi_count_columns(:Users, [key + '1', key + '2'], :start => 'column051', :finish => 'column060'))
+    assert_equal(
+      OrderedHash[key + '1', 50, key + '2', 0],
+      @twitter.multi_count_columns(:Users, [key + '1', key + '2'], :start => 'column001', :finish => 'column050'))
+    assert_equal(
+      OrderedHash[key + '1', 20, key + '2', 40],
+      @twitter.multi_count_columns(:Users, [key + '1', key + '2'], :start => 'column081', :finish => 'column120'))
+  end
+
   def test_batch_mutate
     k = key
 
